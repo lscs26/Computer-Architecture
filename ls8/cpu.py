@@ -42,6 +42,13 @@ class CPU:
             self.reg[operand_a] = operand_b
             self.pc += 3
 
+        # Used to stop running CPU
+        def HLT(operand_a, operand_b):
+            self.running = False
+            self.pc += 1
+
+        self.running = True
+
     def load(self):
         """Load a program into memory."""
 
@@ -93,6 +100,22 @@ class CPU:
 
         print()
 
+    # Accepts the address to read and return the value stored there.
+    def ram_read(self, mar):
+        return self.ram[mar]
+
+    # Accepts a value to write, and the address to write it to.
+    def ram_write(self, mar, mdr):
+        self.ram[mar] = mdr
+        return True
+
     def run(self):
         """Run the CPU."""
-        pass
+            # Start running the CPU
+        while self.running:
+            self.trace()
+            # Get the first set of instructions
+            # Instruction Register (IR)
+            ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
