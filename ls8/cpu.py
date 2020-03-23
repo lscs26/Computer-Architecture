@@ -7,7 +7,40 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # Create memory (256 bits)
+        self.ram = [0] * 256
+
+        # 8 general-purpose 8-bit numeric registers R0-R7
+        # R5 is reserved as the interrupt mask (IM)
+        # An internal switch setting that controls whether an interrupt can be processed or not. The mask is a bit that is turned on and off by the program.
+        # R6 is reserved as the interrupt status (IS)
+        # R7 is reserved as the stack pointer (SP)
+
+        self.reg = [0] * 8
+
+        self.SP = 7
+
+        self.reg[self.SP] = 0xf4
+
+        # Program Counter (PC)
+        # Keep track of where you are on the memory stack
+        self.pc = 0
+
+        # Flag register (FL)
+        # Holds the current flags status
+        # These flags can change based on the operands given to the CMP opcode
+        '''
+        FL bits: 00000LGE
+        L Less-than: during a CMP, set to 1 if registerA is less than registerB, zero otherwise.
+        G Greater-than: during a CMP, set to 1 if registerA is greater than registerB, zero otherwise.
+        E Equal: during a CMP, set to 1 if registerA is equal to registerB, zero otherwise.
+        '''
+        self.fl = 0b00000000
+
+        # Used for generic functions for the CPU
+        def LDI(operand_a, operand_b):
+            self.reg[operand_a] = operand_b
+            self.pc += 3
 
     def load(self):
         """Load a program into memory."""
