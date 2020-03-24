@@ -42,12 +42,23 @@ class CPU:
             self.reg[operand_a] = operand_b
             self.pc += 3
 
+        def PRN(operand_a, operand_b):
+            print(f'{self.reg[operand_a]}')
+            self.pc += 2
+
         # Used to stop running CPU
         def HLT(operand_a, operand_b):
             self.running = False
             self.pc += 1
 
         self.running = True
+
+        self.opcodes = {
+            # List of opcodes
+            0b10000010: LDI,
+            0b01000111: PRN,
+            0b00000001: HLT,
+        }
 
     def load(self):
         """Load a program into memory."""
@@ -119,3 +130,11 @@ class CPU:
             ir = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+
+            opcode = self.opcodes[ir]
+
+            if opcode:
+                opcode(operand_a, operand_b)
+            else:
+                print(f'Unknown command: {ir}')
+                sys.exit(1)
