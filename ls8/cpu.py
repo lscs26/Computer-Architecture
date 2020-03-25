@@ -46,6 +46,17 @@ class CPU:
             print(f'{self.reg[operand_a]}')
             self.pc += 2
 
+        def CALL(operand_a, operand_b):
+            # Push return address on the stack
+            return_address = self.pc + 2
+            self.reg[self.SP] -= 1  # decrement SP
+            self.ram[self.reg[self.SP]] = return_address
+
+        # Calls on ALU
+        def MUL(operand_a, operand_b):
+            self.alu('MUL', operand_a, operand_b)
+            self.pc += 3
+
         # Used to stop running CPU
         def HLT(operand_a, operand_b):
             self.running = False
@@ -58,6 +69,8 @@ class CPU:
             0b10000010: LDI,
             0b01000111: PRN,
             0b00000001: HLT,
+            0b10100010: MUL,
+            0b01010000: CALL,
         }
 
     def load(self):
@@ -67,15 +80,26 @@ class CPU:
 
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010,  # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111,  # PRN R0
+        #     0b00000000,
+        #     0b00000001,  # HLT
+        # ]
+
+        program = []
+
+        f = open(f'examples/{sys.argv[1]}', 'r')
+
+        for i in f.read().split('\n'):
+            if i != '' and i[0] != '#':
+                x = int(i[:8], 2)
+                program.append(x)
+
+        f.close()
 
         for instruction in program:
             self.ram[address] = instruction
@@ -85,9 +109,17 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        def MUL(reg_a, reg_b):
+            self.reg[reg_a] *= self.reg[reg_b]
+
+        alu_opcodes = {
+            'MUL': MUL
+        }
+
+        alu_op = alu_opcodes[op]
+
+        if alu_op:
+            alu_op(reg_a, reg_b)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -124,7 +156,7 @@ class CPU:
         """Run the CPU."""
             # Start running the CPU
         while self.running:
-            self.trace()
+            # self.trace()
             # Get the first set of instructions
             # Instruction Register (IR)
             ir = self.ram_read(self.pc)
