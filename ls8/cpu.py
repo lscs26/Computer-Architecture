@@ -46,15 +46,47 @@ class CPU:
             print(f'{self.reg[operand_a]}')
             self.pc += 2
 
+        def PUSH(operand_a, operand_b):
+            self.reg[self.SP] -= 1
+            reg_num = operand_a
+            reg_val = self.reg[reg_num]
+            self.ram[self.reg[self.SP]] = reg_val
+            self.pc += 2
+
+        def POP(operand_a, operand_b):
+            val = self.ram[self.reg[self.SP]]
+            reg_num = operand_a
+            self.reg[reg_num] = val
+            self.reg[self.SP] += 1
+            self.pc += 2
+
         def CALL(operand_a, operand_b):
             # Push return address on the stack
             return_address = self.pc + 2
             self.reg[self.SP] -= 1  # decrement SP
             self.ram[self.reg[self.SP]] = return_address
 
+            # Set the PC to the value in the register
+            reg_num = operand_a
+            self.pc = self.reg[reg_num]
+
+        def RET(operand_a, operand_b):
+            # Pop the return address off the stack
+            # Store it in the PC
+            self.pc = self.ram[self.reg[self.SP]]
+            self.reg[self.SP] += 1
+
         # Calls on ALU
         def MUL(operand_a, operand_b):
             self.alu('MUL', operand_a, operand_b)
+            self.pc += 3
+
+        def ADD(operand_a, operand_b):
+            self.alu('ADD', operand_a, operand_b)
+            self.pc += 3
+
+        def SUB(operand_a, operand_b):
+            self.alu('SUB', operand_a, operand_b)
             self.pc += 3
 
         # Used to stop running CPU
@@ -70,7 +102,12 @@ class CPU:
             0b01000111: PRN,
             0b00000001: HLT,
             0b10100010: MUL,
+            0b10100000: ADD,
+            0b10100001: SUB,
+            0b01000101: PUSH,
+            0b01000110: POP,
             0b01010000: CALL,
+            0b00010001: RET
         }
 
     def load(self):
@@ -112,8 +149,16 @@ class CPU:
         def MUL(reg_a, reg_b):
             self.reg[reg_a] *= self.reg[reg_b]
 
+        def ADD(reg_a, reg_b):
+            self.reg[reg_a] += self.reg[reg_b]
+
+        def SUB(reg_a, reg_b):
+            self.reg[reg_a] -= self.reg[reg_b]
+
         alu_opcodes = {
-            'MUL': MUL
+            'MUL': MUL,
+            'ADD': ADD,
+            'SUB': SUB
         }
 
         alu_op = alu_opcodes[op]
